@@ -100,6 +100,21 @@ class ASLAM:
     def get_camera_matrix(self):
         return self.slam.get_camera_matrix()
 
+    def get_last_init_detections(self) -> int:
+        """Raw ORB keypoints detected on the most recent monocular initialization
+        attempt, or -1 if that stage wasn't reached on the last processed frame."""
+        return self.slam.get_last_init_detections()
+
+    def get_last_init_raw_matches(self) -> int:
+        """Raw ratio-test matches against the reference frame on the most recent
+        monocular initialization attempt, or -1 if not reached."""
+        return self.slam.get_last_init_raw_matches()
+
+    def get_last_init_inlier_matches(self) -> int:
+        """Matches surviving the two-view RANSAC + cheirality check on the most
+        recent monocular initialization attempt, or -1 if not reached."""
+        return self.slam.get_last_init_inlier_matches()
+
     def get_state(self):
         try:
             return STATE_MAP[self.slam.get_tracking_state()]

@@ -24,3 +24,13 @@ def test_mono_slam():
     slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC_ViconRoom2.yaml')
     assert isinstance(slam, pyorbslam.MonoSLAM)
     slam.shutdown()
+
+
+def test_mono_slam_last_init_diagnostics_default_before_any_frame():
+    # Before any frame is processed, MonocularInitialization() hasn't run yet,
+    # so all three getters should report the "stage not reached" sentinel.
+    slam = pyorbslam.MonoSLAM(SETTINGS_DIR / 'EuRoC_ViconRoom2.yaml')
+    assert slam.get_last_init_detections() == -1
+    assert slam.get_last_init_raw_matches() == -1
+    assert slam.get_last_init_inlier_matches() == -1
+    slam.shutdown()

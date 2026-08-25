@@ -77,6 +77,9 @@ BOOST_PYTHON_MODULE(orbslam3)
         .def("get_tracking_state", &ORBSlamPython::getTrackingState)
         .def("get_num_features", &ORBSlamPython::getNumFeatures)
         .def("get_num_matched_features", &ORBSlamPython::getNumMatches)
+        .def("get_last_init_detections", &ORBSlamPython::getLastInitDetections)
+        .def("get_last_init_raw_matches", &ORBSlamPython::getLastInitRawMatches)
+        .def("get_last_init_inlier_matches", &ORBSlamPython::getLastInitInlierMatches)
         .def("get_camera_matrix", &ORBSlamPython::getCameraMatrix)
         .def("get_dist_coef", &ORBSlamPython::getDistCoeff)
         // Settings
@@ -376,6 +379,33 @@ unsigned int ORBSlamPython::getNumMatches() const
         return matches;
     }
     return 0;
+}
+
+int ORBSlamPython::getLastInitDetections() const
+{
+    if (system)
+    {
+        return system->GetLastInitDetections();
+    }
+    return -1;
+}
+
+int ORBSlamPython::getLastInitRawMatches() const
+{
+    if (system)
+    {
+        return system->GetLastInitRawMatches();
+    }
+    return -1;
+}
+
+int ORBSlamPython::getLastInitInlierMatches() const
+{
+    if (system)
+    {
+        return system->GetLastInitInlierMatches();
+    }
+    return -1;
 }
 
 boost::python::list ORBSlamPython::getKeyframePoints() const

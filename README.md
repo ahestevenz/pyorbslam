@@ -16,7 +16,7 @@ sudo apt-get install libopencv-dev libeigen3-dev
 
 To be more specific on the dependency version, there are listed below:
 
-* OpenCV >= 4.4
+* OpenCV >= 4.1.1 (lowered from upstream's 4.4 for Jetson Nano / JetPack 4.6.1 compatibility — no code here actually needs 4.4+, see `src/ORB_SLAM3/CMakeLists.txt`)
 * Eigen3 >= 3.1.0
 
 Then clone the repo and install the package. Make sure that you have CMake and gcc update to date.

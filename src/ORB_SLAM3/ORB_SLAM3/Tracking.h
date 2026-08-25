@@ -102,6 +102,13 @@ public:
     int GetNumberDataset();
     int GetMatchesInliers();
 
+    // nano-explorer debug instrumentation: diagnostics for the most recent
+    // monocular initialization attempt (set inside MonocularInitialization()).
+    // -1 means that stage wasn't reached on the last call.
+    int GetLastInitDetections();
+    int GetLastInitRawMatches();
+    int GetLastInitInlierMatches();
+
     //DEBUG
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, string strFolder="");
     void SaveSubTrajectory(string strNameFile_frames, string strNameFile_kf, Map* pMap);
@@ -146,6 +153,14 @@ public:
     std::vector<cv::Point2f> mvbPrevMatched;
     std::vector<cv::Point3f> mvIniP3D;
     Frame mInitialFrame;
+
+    // nano-explorer debug instrumentation (see GetLastInit* above): raw ORB
+    // detections in the current frame, raw ratio-test matches against the
+    // reference frame, and matches surviving the two-view RANSAC + cheirality
+    // check, for the most recent MonocularInitialization() call.
+    int mnLastInitDetections;
+    int mnLastInitRawMatches;
+    int mnLastInitInlierMatches;
 
     // Lists used to recover the full camera trajectory at the end of the execution.
     // Basically we store the reference keyframe for each frame and its relative transformation

@@ -42,7 +42,8 @@ Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, const int initFr, const string &strSequence):
     mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
-    mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false)
+    mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false),
+    mLastInitDetections(-1), mLastInitRawMatches(-1), mLastInitInlierMatches(-1)
 {
 //    // Output welcome message
 //    cout << endl <<
@@ -470,6 +471,9 @@ Sophus::SE3f System::TrackMonocular(const cv::Mat &im, const double &timestamp, 
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
+    mLastInitDetections = mpTracker->GetLastInitDetections();
+    mLastInitRawMatches = mpTracker->GetLastInitRawMatches();
+    mLastInitInlierMatches = mpTracker->GetLastInitInlierMatches();
 
     return Tcw;
 }
@@ -1341,6 +1345,24 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
 {
     unique_lock<mutex> lock(mMutexState);
     return mTrackedKeyPointsUn;
+}
+
+int System::GetLastInitDetections()
+{
+    unique_lock<mutex> lock(mMutexState);
+    return mLastInitDetections;
+}
+
+int System::GetLastInitRawMatches()
+{
+    unique_lock<mutex> lock(mMutexState);
+    return mLastInitRawMatches;
+}
+
+int System::GetLastInitInlierMatches()
+{
+    unique_lock<mutex> lock(mMutexState);
+    return mLastInitInlierMatches;
 }
 
 double System::GetTimeFromIMUInit()

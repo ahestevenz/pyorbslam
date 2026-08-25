@@ -48,6 +48,12 @@ public:
     PyObject *getCameraMatrix() const;
     unsigned int getNumFeatures() const;
     unsigned int getNumMatches() const;
+    // nano-explorer debug instrumentation: diagnostics for the most recent
+    // monocular initialization attempt (see ORB_SLAM3::System::GetLastInit*).
+    // -1 if that stage wasn't reached on the last processed frame.
+    int getLastInitDetections() const;
+    int getLastInitRawMatches() const;
+    int getLastInitInlierMatches() const;
     boost::python::tuple getDistCoeff() const;
     // Settings
     bool saveSettings(boost::python::dict settings) const;

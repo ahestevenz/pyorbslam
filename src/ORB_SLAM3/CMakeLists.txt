@@ -36,7 +36,13 @@ endif()
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
-find_package(OpenCV 4.4 REQUIRED)
+# nano-explorer: lowered from the upstream 4.4 floor to match JetPack 4.6.1's
+# stock OpenCV (4.1.1) on the Jetson Nano. No code here is gated on a 4.4-only
+# API (verified: same audited symbol set as ahestevenz/ORB_SLAM3, no
+# CV_VERSION/CV_MAJOR_VERSION branching beyond log-line prints) — 4.4 was just
+# whatever upstream happened to build against. See UZ-SLAMLab/ORB_SLAM3#456,
+# where other users already confirm 4.2.0 compiles and runs fine.
+find_package(OpenCV 4.1.1 REQUIRED)
 find_package(Eigen3 3.1.0 REQUIRED)
 
 include_directories(
