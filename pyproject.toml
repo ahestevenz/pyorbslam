@@ -50,7 +50,12 @@ documentation = "https://edavalosanaya.github.io/pyorbslam/"
 repository = "https://github.com/edavalosanaya/pyorbslam"
 
 [build-system]
-requires = ["py-build-cmake~=0.1.8"]
+# nano-explorer: pinned to the one and only py-build-cmake release that ever
+# supported Python 3.6 (JetPack 4.6.1's stock interpreter) — every release
+# from 0.1.0 onward, including the upstream ~=0.1.8 pin, requires Python >=3.7
+# and simply cannot resolve/install under 3.6. Verified against PyPI's full
+# release history (every 0.0.x/0.1.x+ requires_python value).
+requires = ["py-build-cmake==0.0.11.post1"]
 build-backend = "py_build_cmake.build"
 
 [tool.py-build-cmake.module]
@@ -67,7 +72,13 @@ source_path = "src"
 build_args = ["-j3"]
 install_components = ['python_modules']
 install_args = ['--verbose']
-find_python = true
+# find_python (auto-detect the invoking interpreter for CMake) does not exist
+# in py-build-cmake 0.0.11.post1 (pinned above) — removed rather than left in,
+# since that version's config parser rejects unrecognized keys outright.
+# CMake's own find_package(PythonInterp)/find_package(PythonLibs) in
+# src/python/CMakeLists.txt fall back to a plain PATH search instead, which
+# still resolves correctly as long as the target virtualenv is active (its
+# bin/ is first on PATH) when running `pip install .`.
 
 # Reference:
 # https://stackoverflow.com/questions/4673373/logging-within-pytest-tests
