@@ -55,7 +55,16 @@ repository = "https://github.com/edavalosanaya/pyorbslam"
 # from 0.1.0 onward, including the upstream ~=0.1.8 pin, requires Python >=3.7
 # and simply cannot resolve/install under 3.6. Verified against PyPI's full
 # release history (every 0.0.x/0.1.x+ requires_python value).
-requires = ["py-build-cmake==0.0.11.post1"]
+#
+# tomli is an undeclared dependency of py-build-cmake==0.0.11.post1 itself:
+# its own config.py does `import tomli` unconditionally (Python 3.6 has no
+# stdlib tomllib), but that release's own metadata never lists tomli as a
+# requirement — confirmed via PyPI's requires_dist for this exact version.
+# Without it listed here too, pip's isolated build env doesn't install it and
+# the build fails with "ModuleNotFoundError: No module named 'tomli'" at the
+# "Getting requirements to build wheel" step. tomli 2.0+ requires Python
+# >=3.7, so this needs its own upper bound for the same reason as above.
+requires = ["py-build-cmake==0.0.11.post1", "tomli<2"]
 build-backend = "py_build_cmake.build"
 
 [tool.py-build-cmake.module]
