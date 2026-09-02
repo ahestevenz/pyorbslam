@@ -78,7 +78,11 @@ include = ["src/*"]
 minimum_version = "3.20"
 build_type = "Release"
 source_path = "src"
-build_args = ["-j3"]
+# nano-explorer: -j3 caused severe swap thrashing on a real Jetson Nano 4GB
+# (ps aux showed parallel cc1plus jobs each holding ~1-1.15GB RSS, D-state
+# uninterruptible sleep, and >60 minutes wall-clock for <6 minutes of actual
+# CPU time on a single Sophus test TU) — dropped to single-threaded.
+build_args = ["-j1"]
 install_components = ['python_modules']
 install_args = ['--verbose']
 # find_python (auto-detect the invoking interpreter for CMake) does not exist
