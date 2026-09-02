@@ -16,28 +16,37 @@ classifiers = [
 ]
 
 # nano-explorer: pared down to what `pyorbslam/__init__.py`'s core imports
-# (orbslam3, MonoSLAM et al., state, sensor, utils) actually need — numpy,
-# PyYAML, opencv-python-headless, Pillow, tqdm. Everything below moved to the
-# `viewer`/`tools` extras: they're only imported by trajectory_drawer/ and
-# tools.py respectively (confirmed by grepping every import in this package),
-# neither of which nano-explorer's own integration (`from pyorbslam import
-# orbslam3`) touches. Declaring them as hard dependencies meant a plain
-# `pip install .` on a Jetson Nano (JetPack 4.6.1 / Python 3.6) failed
-# entirely trying to build PyQt5 from source: PyQt5's own build needs `sip`,
-# and every sip 5.x/6.x release fails with "AttributeError: module
-# 'setuptools.build_meta' has no attribute '__legacy__'" against this venv's
-# pip/setuptools combination, while old-enough PyQt5 releases (<=5.14.2) ship
-# a `pyproject.toml` with an invalid PEP 518 requirement string
+# (orbslam3, MonoSLAM et al., state, sensor, utils) actually need. Everything
+# below moved to the `viewer`/`tools` extras: they're only imported by
+# trajectory_drawer/ and tools.py respectively (confirmed by grepping every
+# import in this package), neither of which nano-explorer's own integration
+# (`from pyorbslam import orbslam3`) touches. Declaring them as hard
+# dependencies meant a plain `pip install .` on a Jetson Nano (JetPack 4.6.1 /
+# Python 3.6) failed entirely trying to build PyQt5 from source: PyQt5's own
+# build needs `sip`, and every sip 5.x/6.x release fails with "AttributeError:
+# module 'setuptools.build_meta' has no attribute '__legacy__'" against this
+# venv's pip/setuptools combination, while old-enough PyQt5 releases (<=5.14.2)
+# ship a `pyproject.toml` with an invalid PEP 518 requirement string
 # ('sip >=5.0.1 <6', missing a comma) that this pip's parser rejects outright
 # — every PyQt5 version from 5.14.0 to 5.15.1 fails one way or the other.
-# `python3-pyqt5` (installed via apt in Step 9c's system dependencies) is
-# meant to be used instead of any of this — but only if you actually want
-# TrajectoryDrawer/TDApp, which nano-explorer does not.
+#
+# opencv-python-headless removed entirely (not moved to an extra) for the
+# same reason nano-explorer's own requirements.txt already excludes it
+# ("OpenCV 4.1.1 is bundled with JetPack — do not reinstall from pip"): no
+# PyPI opencv-python-headless release publishes an aarch64+cp36 wheel, so pip
+# falls back to building from source, and every source release fails one of
+# two ways — "ModuleNotFoundError: No module named 'wheel.wheelfile'" (the
+# scikit-build-backed releases, a wheel-package-version mismatch) or the same
+# setuptools.build_meta.__legacy__ AttributeError as sip above (the
+# older, setup.py-backed releases) — confirmed on-device across 5+ versions
+# from 5.0.0.93 down to 4.10.0.82. The system OpenCV 4.1.1 already set up in
+# Step 9b/9c is already importable as `cv2` in this venv (same as everywhere
+# else in nano-explorer, e.g. lib/camera.py) — pyorbslam's own code just does
+# `import cv2` and has no actual version floor that requires the PyPI package.
 dependencies = [
     "numpy",
     "tqdm",
     "PyYAML",
-    "opencv-python-headless",
     "Pillow",
 ]
 
