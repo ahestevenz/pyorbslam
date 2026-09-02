@@ -15,14 +15,37 @@ classifiers = [
     "Programming Language :: Python :: 3"
 ]
 
+# nano-explorer: pared down to what `pyorbslam/__init__.py`'s core imports
+# (orbslam3, MonoSLAM et al., state, sensor, utils) actually need — numpy,
+# PyYAML, opencv-python-headless, Pillow, tqdm. Everything below moved to the
+# `viewer`/`tools` extras: they're only imported by trajectory_drawer/ and
+# tools.py respectively (confirmed by grepping every import in this package),
+# neither of which nano-explorer's own integration (`from pyorbslam import
+# orbslam3`) touches. Declaring them as hard dependencies meant a plain
+# `pip install .` on a Jetson Nano (JetPack 4.6.1 / Python 3.6) failed
+# entirely trying to build PyQt5 from source: PyQt5's own build needs `sip`,
+# and every sip 5.x/6.x release fails with "AttributeError: module
+# 'setuptools.build_meta' has no attribute '__legacy__'" against this venv's
+# pip/setuptools combination, while old-enough PyQt5 releases (<=5.14.2) ship
+# a `pyproject.toml` with an invalid PEP 518 requirement string
+# ('sip >=5.0.1 <6', missing a comma) that this pip's parser rejects outright
+# — every PyQt5 version from 5.14.0 to 5.15.1 fails one way or the other.
+# `python3-pyqt5` (installed via apt in Step 9c's system dependencies) is
+# meant to be used instead of any of this — but only if you actually want
+# TrajectoryDrawer/TDApp, which nano-explorer does not.
 dependencies = [
     "numpy",
     "tqdm",
     "PyYAML",
     "opencv-python-headless",
     "Pillow",
+]
+
+[project.optional-dependencies]
+# Needed only by trajectory_drawer/ (TrajectoryDrawer, TDApp) — not required
+# for `from pyorbslam import orbslam3`, which is all nano-explorer uses.
+viewer = [
     "PyOpenGL",
-    "plyfile",
     "pyqtgraph",
     "PyQt5",
     "pyzmq",
@@ -30,10 +53,16 @@ dependencies = [
     "netifaces",
     "blosc",
     "trimesh",
-    "aiohttp"
+    "aiohttp",
 ]
-
-[project.optional-dependencies]
+# Needed only by tools.py — also not required for nano-explorer's use.
+# pandas was missing from this list entirely upstream (tools.py imports it
+# but no dependency ever declared it); added here since it belongs with the
+# rest of tools.py's real dependencies.
+tools = [
+    "plyfile",
+    "pandas",
+]
 test = [
     'pytest',
     'pytest-lazy-fixture',
