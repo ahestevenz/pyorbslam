@@ -41,7 +41,15 @@ message(STATUS "PYTHON_EXECUTABLE = ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_INCLUDE_DIRS = ${PYTHON_INCLUDE_DIRS}")
 message(STATUS "PYTHON_NUMPY_INCLUDE_DIR = ${PYTHON_NUMPY_INCLUDE_DIR}")
 
-find_package(Boost REQUIRED COMPONENTS python numpy3)
+# "python" (unversioned) resolves to whatever libboost-python-dev's alternatives
+# system calls the "default version" — py27 on Ubuntu bionic aarch64, even though
+# PythonInterp/PythonLibs above already resolved to 3.6. That pulled in
+# libboost_python-py27.so as a spurious link alongside the numpy3 component's own
+# (correct) transitive dependency on libboost_python3-py36.so — and the py27 lib's
+# unresolved Py* symbols (e.g. PyClass_Type, Python-2-only) then failed to resolve
+# at import time under a Python 3 interpreter. "python3" pins the component to the
+# py36 build explicitly.
+find_package(Boost REQUIRED COMPONENTS python3 numpy3)
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 
