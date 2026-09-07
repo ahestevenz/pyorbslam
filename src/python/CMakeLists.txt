@@ -23,8 +23,13 @@ else()
 endif()
 
 # find_package(Python 3 COMPONENTS Interpreter Development Numpy)
-find_package(PythonInterp 3)
-find_package(PythonLibs)
+find_package(PythonInterp 3 REQUIRED)
+# Unversioned, like the Boost "python" component above, this resolved to
+# Python 2.7's headers/lib despite PythonInterp already pinning 3 — compiling
+# BOOST_PYTHON_MODULE against Python 2.7's Python.h (PY_MAJOR_VERSION < 3)
+# emits the old "initorbslam3" entry point instead of "PyInit_orbslam3", which
+# Python 3 requires.
+find_package(PythonLibs 3 REQUIRED)
 
 execute_process(
     COMMAND ${PYTHON_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
