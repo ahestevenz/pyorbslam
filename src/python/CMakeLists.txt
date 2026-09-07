@@ -85,6 +85,19 @@ target_compile_definitions(${TARGET_MODULE_NAME} PRIVATE
 set_target_properties(${TARGET_MODULE_NAME} PROPERTIES
     CXX_VISIBILITY_PRESET "hidden"
     VISIBILITY_INLINES_HIDDEN true)
+
+# Boost.Python 1.65's BOOST_PYTHON_MODULE macro (src/ORBSlamPython.cpp) doesn't
+# itself force default visibility on the PyInit_orbslam3 entry point it
+# generates, so it inherits the CXX_VISIBILITY_PRESET hidden default above and
+# never lands in the .so's dynamic symbol table -- confirmed on-device via
+# `nm orbslam3.so` (PyInit_orbslam3 present as local 't') vs. `nm -D` (absent).
+# Python's import machinery resolves PyInit_<name> via dlsym, which only sees
+# dynamic symbols, so the hidden entry point fails with "dynamic module does
+# not define module export function". Re-exporting just this one TU (not the
+# whole target) keeps the vendored DBoW2/g2o/ORB_SLAM3 symbols hidden.
+set_source_files_properties(src/ORBSlamPython.cpp PROPERTIES
+    COMPILE_OPTIONS "-fvisibility=default")
+
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_options(${TARGET_MODULE_NAME} PRIVATE "LINKER:--exclude-libs,ALL")
 endif()
