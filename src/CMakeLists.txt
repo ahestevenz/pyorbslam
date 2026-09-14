@@ -11,6 +11,22 @@ if(NOT CMAKE_DEBUG)
 else()
     set(CMAKE_BUILD_TYPE Debug)
 
+    # nano-explorer: real optimization without the "causes errors" risk of a genuine
+    # Release build. Release automatically defines NDEBUG, which strips every assert()
+    # in the tree -- including g2o/core/openmp_mutex.h's non-OpenMP OpenMPMutex, whose
+    # lock()/unlock()/destructor bodies are themselves assert() statements (this only
+    # matters if G2O_USE_OPENMP is ever turned on -- left OFF below on purpose, per
+    # g2o's own CMakeLists.txt comment that OpenMP caused it a slowdown, plus ORB-SLAM3
+    # already running 3 of its own threads on a 4-core Nano). CMAKE_BUILD_TYPE Debug
+    # never defines NDEBUG, so appending -O3 -march=native here (matching g2o's own
+    # dormant CMAKE_CXX_FLAGS_RELEASE, which never fires while this file forces Debug)
+    # gets real optimized codegen with every assert()/diagnostic still intact -- the
+    # compiler uses the last -O flag on the command line, so this wins over Debug's own
+    # implicit -O0. Confirmed on-device: real compiler invocations previously showed
+    # only "-O0 -g".
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -march=native")
+
     # For memory leak detection
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer -g")
     # set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address")
