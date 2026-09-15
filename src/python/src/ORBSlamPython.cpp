@@ -161,24 +161,25 @@ PyObject *ORBSlamPython::processMono(cv::Mat image, double timestamp, std::strin
     if (system && image.data){
 
         cv::Mat pose;
-        {
-            // Release the GIL for the actual tracking call. TrackMonocular() spends
-            // 200-450ms in pure C++/OpenCV/Eigen work (feature extraction, matching,
-            // pose estimation, plus waiting on LocalMapping/LoopClosing's own mutexes)
-            // and never touches a Python object -- but Boost.Python holds the GIL for
-            // the whole call unless told otherwise, which froze every other Python
-            // thread (in nano-explorer's case, the teleop arrow-key reader) solid for
-            // that entire window. pbcvt::PyAllowThreads is the same GIL-release RAII
-            // helper the ERRWRAP2 macro elsewhere in this codebase already uses; the
-            // NumpyAllocator's deallocate() already re-acquires the GIL via
-            // PyEnsureGIL whenever it touches a Python object, specifically so this is
-            // safe to do -- `image`'s pixel data stays valid throughout regardless,
-            // since it's a zero-copy alias into the caller's numpy array, kept alive
-            // by the calling Python frame, which is blocked on this call.
-            pbcvt::PyAllowThreads allowThreads;
-            Sophus::SE3f sophusPose = system->TrackMonocular(image, timestamp, vector<ORB_SLAM3::IMU::Point>(), imageFile);
-            pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
-        }
+        Sophus::SE3f sophusPose;
+        // Release the GIL for the actual tracking call. TrackMonocular() spends
+        // 200-450ms in pure C++/OpenCV/Eigen work (feature extraction, matching,
+        // pose estimation, plus waiting on LocalMapping/LoopClosing's own mutexes)
+        // and never touches a Python object -- but Boost.Python holds the GIL for
+        // the whole call unless told otherwise, which froze every other Python
+        // thread (in nano-explorer's case, the teleop arrow-key reader) solid for
+        // that entire window. Py_BEGIN_ALLOW_THREADS/Py_END_ALLOW_THREADS are the
+        // standard CPython C-API macros for this -- pbcvt::PyAllowThreads (used by
+        // ERRWRAP2 elsewhere in this codebase) does the same thing but is only
+        // forward-declared in pyboostcvconverter.hpp, with its actual definition
+        // private to pyboost_cv4_converter.cpp's own translation unit, so it's an
+        // incomplete type here. `image`'s pixel data stays valid throughout
+        // regardless, since it's a zero-copy alias into the caller's numpy array,
+        // kept alive by the calling Python frame, which is blocked on this call.
+        Py_BEGIN_ALLOW_THREADS
+        sophusPose = system->TrackMonocular(image, timestamp, vector<ORB_SLAM3::IMU::Point>(), imageFile);
+        pose = ORB_SLAM3::Converter::toCvMat(sophusPose.matrix());
+        Py_END_ALLOW_THREADS
         if (pose.rows * pose.cols > 0){
             return pbcvt::fromMatToNDArray(pose);
         }
